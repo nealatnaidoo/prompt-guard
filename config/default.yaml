@@ -1,0 +1,106 @@
+# Prompt Guard Configuration
+# ===========================
+
+service:
+  host: "0.0.0.0"
+  port: 8420
+  workers: 4
+  log_level: "info"
+
+# Detection engine settings
+detection:
+  # Minimum combined threat score (0.0-1.0) to flag content
+  threat_threshold: 0.65
+  # Maximum content length before auto-reject (chars)
+  max_content_length: 500000
+  # Enable parallel detector execution
+  parallel_detectors: true
+
+# Individual detector weights (must sum to ~1.0)
+detector_weights:
+  pattern:    0.30   # Regex pattern matching
+  heuristic:  0.25   # Structural / statistical heuristics
+  semantic:   0.25   # Semantic analysis (instruction detection)
+  entropy:    0.10   # Entropy & encoding anomalies
+  provenance: 0.10   # Source reputation & history
+
+# Pattern detector config
+pattern_detector:
+  # How many standard patterns to load
+  ruleset: "comprehensive"  # minimal | standard | comprehensive
+  # Custom pattern files (glob)
+  custom_patterns: []
+  # Case-insensitive matching
+  case_insensitive: true
+
+# Heuristic detector config
+heuristic_detector:
+  # Ratio of instruction-like sentences to total sentences
+  instruction_ratio_threshold: 0.35
+  # Unusual Unicode detection
+  unicode_anomaly_threshold: 0.05
+  # Nesting depth for encoded payloads
+  max_decode_depth: 5
+  # Token density anomaly threshold
+  token_density_threshold: 3.0
+
+# Semantic detector config
+semantic_detector:
+  # Enable LLM-as-judge (requires API key)
+  llm_judge_enabled: false
+  llm_judge_provider: "claude"  # claude | openai | local
+  llm_judge_model: "claude-sonnet-4-5-20250929"
+  # Fallback to heuristic if LLM judge fails
+  fallback_to_heuristic: true
+
+# Entropy detector config
+entropy_detector:
+  # Shannon entropy threshold for suspicious segments
+  high_entropy_threshold: 5.5
+  # Base64-like segment detection
+  base64_min_length: 40
+  # Hex-encoded content detection
+  hex_min_length: 32
+
+# Sanitiser settings
+sanitiser:
+  # Default action: "strip" | "escape" | "quarantine" | "reject"
+  default_action: "escape"
+  # Preserve code blocks (don't sanitise inside ```)
+  preserve_code_blocks: true
+  # Strip invisible Unicode characters
+  strip_invisible_unicode: true
+  # Normalise Unicode confusables
+  normalise_confusables: true
+  # Max nested encoding decode attempts
+  max_decode_passes: 5
+
+# Response policies
+policies:
+  # What to do when threat detected
+  on_threat:
+    action: "quarantine"  # pass | warn | quarantine | reject
+    include_analysis: true
+    log_full_content: true
+
+  # What to do on analysis error
+  on_error:
+    action: "reject"  # pass | reject
+    log_full_content: true
+
+# Audit logging
+audit:
+  enabled: true
+  # Log destination: "file" | "stdout" | "both"
+  destination: "both"
+  log_file: "./logs/prompt_guard_audit.jsonl"
+  # Log clean requests too (verbose)
+  log_clean: false
+  # Retention days for file logs
+  retention_days: 90
+
+# Rate limiting
+rate_limiting:
+  enabled: true
+  requests_per_minute: 120
+  burst_size: 20
