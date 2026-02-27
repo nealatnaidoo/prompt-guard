@@ -5,7 +5,7 @@ Task: T006
 
 from __future__ import annotations
 
-from src.models.schemas import ScanResult, ThreatLevel, PolicyAction
+from src.models.schemas import ScanResult
 from src.ports.audit import AuditPort
 from src.ports.clock import ClockPort
 from src.ports.config import ConfigPort

@@ -21,7 +21,6 @@ from src.detectors.heuristic_detector import HeuristicDetector
 from src.detectors.pattern_detector import PatternDetector
 from src.detectors.provenance_detector import ProvenanceDetector
 from src.detectors.semantic_detector import SemanticDetector
-from src.models.schemas import PolicyAction, ThreatLevel
 from src.sanitizers.content_sanitizer import ContentSanitiser
 from tests.helpers.fakes import FixedClockAdapter, NullAuditAdapter
 
@@ -30,9 +29,6 @@ def _build_test_app():
     """Build a fresh FastAPI app with test dependencies for each test."""
     from fastapi import FastAPI
     from src.middleware.app import (
-        SanitiseRequest,
-        SanitiseResponse,
-        StatsResponse,
         scan_content,
         sanitise_content,
         health_check,

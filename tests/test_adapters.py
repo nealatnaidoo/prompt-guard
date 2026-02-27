@@ -7,7 +7,6 @@ from __future__ import annotations
 
 import json
 
-import pytest
 
 from src.adapters.clock import SystemClockAdapter
 from src.adapters.config import YamlFileConfigAdapter

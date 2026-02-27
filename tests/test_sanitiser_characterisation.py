@@ -11,7 +11,7 @@ import base64
 
 import pytest
 
-from src.sanitizers.content_sanitizer import ContentSanitiser, SanitiseResult
+from src.sanitizers.content_sanitizer import ContentSanitiser
 
 
 # ---------------------------------------------------------------------------

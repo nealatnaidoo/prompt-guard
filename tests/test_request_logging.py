@@ -5,10 +5,9 @@ Task: T019
 
 from __future__ import annotations
 
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
-import pytest
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from src.middleware.request_logging import RequestLoggingMiddleware, _SKIP_LOG_PATHS

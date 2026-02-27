@@ -8,7 +8,6 @@ from __future__ import annotations
 
 import html
 import re
-import unicodedata
 from typing import Any
 
 from ..models.confusables import CONFUSABLE_MAP

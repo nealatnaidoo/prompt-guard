@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from collections import defaultdict
 
 import pytest
 
@@ -14,7 +13,7 @@ from src.detectors.semantic_detector import SemanticDetector
 from src.detectors.entropy_detector import EntropyDetector
 from src.detectors.provenance_detector import ProvenanceDetector
 from src.sanitizers.content_sanitizer import ContentSanitiser
-from tests.helpers.fakes import FixedClockAdapter, InMemoryConfigAdapter, NullAuditAdapter, build_default_registry
+from tests.helpers.fakes import FixedClockAdapter, NullAuditAdapter, build_default_registry
 
 
 @pytest.fixture
