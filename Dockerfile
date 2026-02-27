@@ -11,7 +11,8 @@ WORKDIR /build
 COPY pyproject.toml .
 COPY src/ src/
 
-RUN pip install --no-cache-dir --prefix=/install .
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
+    pip install --no-cache-dir --prefix=/install .
 
 # ---- Runtime stage: minimal image ----
 FROM python:3.12-slim
