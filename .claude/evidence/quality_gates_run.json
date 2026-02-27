@@ -1,24 +1,21 @@
 {
-  "run_at": "2026-02-27T09:00:00Z",
-  "trigger": "/qa (full mode)",
+  "run_at": "2026-02-27T12:00:00Z",
+  "trigger": "manual quality gates run",
+  "commit": "8ea810d",
   "gates": {
     "gate_1_tests_pass": {
       "status": "PASS",
-      "detail": "309/309 tests passing in 0.63s",
+      "detail": "402/402 tests passing in 2.77s",
       "blocking": true
     },
     "gate_2_coverage": {
       "status": "PASS",
-      "detail": "83% line coverage (threshold: 80%)",
-      "total_statements": 1061,
-      "missed": 180,
-      "coverage_pct": 83,
+      "detail": "100% line coverage (threshold: 80%)",
+      "total_statements": 1046,
+      "missed": 0,
+      "coverage_pct": 100,
       "blocking": true,
-      "uncovered_files": {
-        "src/cli.py": "0% (16/16 missed — no CLI tests)",
-        "src/client.py": "0% (67/67 missed — no SDK tests)",
-        "src/middleware/app.py": "75% (30/118 missed — lifespan + error paths)"
-      }
+      "uncovered_files": {}
     },
     "gate_3_determinism": {
       "status": "PASS",
@@ -26,10 +23,9 @@
       "blocking": true
     },
     "gate_4_import_boundary": {
-      "status": "WARN",
-      "detail": "engine.py has lazy imports of concrete detectors in _register_default_detectors() fallback (lines 70-74). Imports are inside a method, not at module level. This is the fallback path when no registry is injected.",
-      "blocking": true,
-      "note": "Acceptable for backward compatibility — composition root is the primary path"
+      "status": "PASS",
+      "detail": "No concrete detector imports in engine.py — all registration via composition root",
+      "blocking": true
     },
     "gate_5_no_singleton": {
       "status": "PASS",
@@ -37,16 +33,11 @@
       "blocking": true
     },
     "gate_6_type_hints": {
-      "status": "WARN",
-      "detail": "6 mypy errors across 4 files (pre-existing, not introduced by retrofit)",
-      "errors": [
-        "src/utils/config.py:45 — int assigned to str|None",
-        "src/utils/config.py:48 — float assigned to str|None",
-        "src/detectors/engine.py:150 — extend() type mismatch with BaseException",
-        "src/middleware/app.py:181 — str vs ContentSource enum"
-      ],
+      "status": "PASS",
+      "detail": "0 mypy errors across 29 source files (previously 6 errors, all fixed)",
+      "errors": [],
       "blocking": false,
-      "note": "Advisory gate — these are pre-existing type issues, not regressions"
+      "note": "All 6 pre-existing type errors resolved: config.py type coercion, engine.py gather typing, app.py ContentSource enum"
     },
     "gate_7_backward_compat": {
       "status": "PASS",
@@ -55,16 +46,16 @@
     },
     "gate_8_characterisation_tests": {
       "status": "PASS",
-      "detail": "69 engine characterisation + 140 sanitiser characterisation tests passing",
+      "detail": "69 engine characterisation + 140 sanitiser characterisation tests passing (209 total)",
       "blocking": true
     }
   },
   "summary": {
-    "blocking_pass": 7,
-    "blocking_warn": 1,
+    "blocking_pass": 8,
+    "blocking_warn": 0,
     "blocking_fail": 0,
-    "advisory_warn": 1,
+    "advisory_warn": 0,
     "advisory_fail": 0,
-    "overall": "PASS_WITH_NOTES"
+    "overall": "PASS"
   }
 }
