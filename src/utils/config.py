@@ -32,22 +32,23 @@ def load_config(path: str | Path | None = None) -> dict[str, Any]:
     }
 
     for env_key, config_path_parts in env_overrides.items():
-        value = os.environ.get(env_key)
-        if value is not None:
+        raw_value = os.environ.get(env_key)
+        if raw_value is not None:
             # Navigate to the right nested dict
             d = config
             for part in config_path_parts[:-1]:
                 d = d.setdefault(part, {})
             # Type coercion
-            if value.lower() in ("true", "false"):
-                value = value.lower() == "true"
-            elif value.isdigit():
-                value = int(value)
+            coerced: Any
+            if raw_value.lower() in ("true", "false"):
+                coerced = raw_value.lower() == "true"
+            elif raw_value.isdigit():
+                coerced = int(raw_value)
             else:
                 try:
-                    value = float(value)
+                    coerced = float(raw_value)
                 except ValueError:
-                    pass
-            d[config_path_parts[-1]] = value
+                    coerced = raw_value
+            d[config_path_parts[-1]] = coerced
 
     return config

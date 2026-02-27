@@ -122,7 +122,7 @@ class DetectionEngine:
                         str(r),
                     )
                 else:
-                    all_findings.extend(r)
+                    all_findings.extend(r)  # type: ignore[arg-type]
         else:
             for detector in detectors:
                 try:

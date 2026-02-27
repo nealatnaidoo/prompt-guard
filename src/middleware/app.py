@@ -30,6 +30,7 @@ from ..detectors.semantic_detector import SemanticDetector
 from ..detectors.entropy_detector import EntropyDetector
 from ..detectors.provenance_detector import ProvenanceDetector
 from ..models.schemas import (
+    ContentSource,
     HealthResponse,
     PolicyAction,
     ScanRequest,
@@ -178,7 +179,7 @@ async def sanitise_content(request: SanitiseRequest, http_request: Request):
         # First scan
         scan_req = ScanRequest(
             content=request.content,
-            source=request.source,
+            source=ContentSource(request.source),
             metadata=request.metadata,
         )
         scan_result = await state.engine.scan(scan_req)

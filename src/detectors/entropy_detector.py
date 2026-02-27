@@ -45,7 +45,7 @@ class EntropyDetector(BaseDetector):
     def _shannon_entropy(data: str) -> float:
         if not data:
             return 0.0
-        freq = {}
+        freq: dict[str, int] = {}
         for ch in data:
             freq[ch] = freq.get(ch, 0) + 1
         length = len(data)
