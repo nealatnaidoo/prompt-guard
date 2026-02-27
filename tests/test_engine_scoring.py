@@ -8,13 +8,14 @@ import unittest
 
 from src.detectors.engine import DetectionEngine
 from src.models.schemas import DetectorFinding, ThreatCategory
+from tests.helpers.fakes import build_default_registry
 
 
 class TestAggregateScoresBoost(unittest.TestCase):
     """Verify multi-detector agreement boost logic."""
 
     def setUp(self):
-        self.engine = DetectionEngine()
+        self.engine = DetectionEngine(registry=build_default_registry())
 
     def _make_finding(self, detector: str, score: float) -> DetectorFinding:
         """Create a minimal DetectorFinding for scoring tests."""

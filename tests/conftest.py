@@ -14,13 +14,19 @@ from src.detectors.semantic_detector import SemanticDetector
 from src.detectors.entropy_detector import EntropyDetector
 from src.detectors.provenance_detector import ProvenanceDetector
 from src.sanitizers.content_sanitizer import ContentSanitiser
-from tests.helpers.fakes import FixedClockAdapter, InMemoryConfigAdapter, NullAuditAdapter
+from tests.helpers.fakes import FixedClockAdapter, InMemoryConfigAdapter, NullAuditAdapter, build_default_registry
 
 
 @pytest.fixture
-def engine():
-    """Engine with real detectors (backward-compatible, no DI)."""
-    return DetectionEngine()
+def full_registry():
+    """A DetectorRegistry pre-loaded with all five default detectors."""
+    return build_default_registry()
+
+
+@pytest.fixture
+def engine(full_registry):
+    """Engine with real detectors and injected registry."""
+    return DetectionEngine(registry=full_registry)
 
 
 @pytest.fixture

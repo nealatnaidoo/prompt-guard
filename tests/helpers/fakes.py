@@ -8,10 +8,32 @@ from __future__ import annotations
 
 from typing import Any
 
+from src.detectors.base import DetectorRegistry
+from src.detectors.entropy_detector import EntropyDetector
+from src.detectors.heuristic_detector import HeuristicDetector
+from src.detectors.pattern_detector import PatternDetector
+from src.detectors.provenance_detector import ProvenanceDetector
+from src.detectors.semantic_detector import SemanticDetector
 from src.models.schemas import ScanResult
 from src.ports.audit import AuditPort
 from src.ports.clock import ClockPort
 from src.ports.config import ConfigPort
+
+
+def build_default_registry(config: dict[str, Any] | None = None) -> DetectorRegistry:
+    """Build a DetectorRegistry with all five default detectors.
+
+    This mirrors the registration logic from the composition root (app.py lifespan).
+    Use this in tests that need a fully-wired engine without going through FastAPI.
+    """
+    cfg = config or {}
+    registry = DetectorRegistry()
+    registry.register(PatternDetector(cfg.get("pattern_detector", {})))
+    registry.register(HeuristicDetector(cfg.get("heuristic_detector", {})))
+    registry.register(SemanticDetector(cfg.get("semantic_detector", {})))
+    registry.register(EntropyDetector(cfg.get("entropy_detector", {})))
+    registry.register(ProvenanceDetector(cfg.get("provenance_detector", {})))
+    return registry
 
 
 class FixedClockAdapter(ClockPort):

@@ -167,24 +167,35 @@ outstanding:
   - id: BUG-001
     source: verify_deep
     priority: high
-    status: open
+    status: resolved
     summary: Engine fallback path retains non-deterministic uuid/time calls
     file: src/detectors/engine.py
     created: '2026-02-27'
+    resolved: '2026-02-27'
   - id: BUG-002
     source: verify_deep
     priority: low
-    status: open
+    status: resolved
     summary: Module-level mutable _DEFAULT_WEIGHTS shared reference
     file: src/detectors/engine.py
     created: '2026-02-27'
+    resolved: '2026-02-27'
   - id: IMPROVE-001
     source: verify_deep
     priority: medium
-    status: open
+    status: resolved
     summary: ScanResult defaults weaken spec intent for determinism
     file: src/models/schemas.py
     created: '2026-02-27'
+    resolved: '2026-02-27'
+  - id: IMPROVE-002
+    source: verify_deep
+    priority: low
+    status: resolved
+    summary: Move default detector registration to composition root
+    file: src/detectors/engine.py
+    created: '2026-02-27'
+    resolved: '2026-02-27'
 domain_summary:
   backend:
     tasks:

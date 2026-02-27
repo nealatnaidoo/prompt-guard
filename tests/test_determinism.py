@@ -16,17 +16,24 @@ from src.models.schemas import ScanResult, SanitiseResult
 
 class TestScanResultDeterminism:
 
-    def test_scan_result_has_no_uuid_default(self) -> None:
-        """request_id must not have a uuid default_factory."""
+    def test_scan_result_request_id_is_required(self) -> None:
+        """request_id must be a required field with no default."""
         f = next(f for f in fields(ScanResult) if f.name == "request_id")
-        # Should be a simple default, not a factory
-        assert f.default == ""
-        assert f.default_factory is ScanResult.__dataclass_fields__["request_id"].default_factory  # type: ignore[attr-defined]
+        from dataclasses import MISSING
+        assert f.default is MISSING
+        assert f.default_factory is MISSING  # type: ignore[comparison-overlap]
 
-    def test_scan_result_has_no_time_default(self) -> None:
-        """timestamp must not have a time.time default_factory."""
+    def test_scan_result_timestamp_is_required(self) -> None:
+        """timestamp must be a required field with no default."""
         f = next(f for f in fields(ScanResult) if f.name == "timestamp")
-        assert f.default == 0.0
+        from dataclasses import MISSING
+        assert f.default is MISSING
+        assert f.default_factory is MISSING  # type: ignore[comparison-overlap]
+
+    def test_scan_result_raises_without_required_fields(self) -> None:
+        """ScanResult() without request_id and timestamp raises TypeError."""
+        with pytest.raises(TypeError):
+            ScanResult()  # type: ignore[call-arg]
 
     def test_schemas_no_uuid_import(self) -> None:
         """The schemas module should not import uuid."""

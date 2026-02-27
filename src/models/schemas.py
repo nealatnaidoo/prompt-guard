@@ -77,8 +77,8 @@ class DetectorFinding:
 @dataclass
 class ScanResult:
     """Complete analysis result."""
-    request_id: str = ""
-    timestamp: float = 0.0
+    request_id: str
+    timestamp: float
     threat_level: ThreatLevel = ThreatLevel.CLEAN
     threat_score: float = 0.0
     action_taken: PolicyAction = PolicyAction.PASS

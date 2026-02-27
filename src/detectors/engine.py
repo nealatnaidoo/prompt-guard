@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import time
+from types import MappingProxyType
 from typing import Any
 
 import logging
@@ -17,18 +18,19 @@ from ..models.schemas import (
     ScanResult,
     ThreatLevel,
 )
+from ..adapters.clock import SystemClockAdapter
 from ..ports.clock import ClockPort
 
 logger = logging.getLogger(__name__)
 
-# Default detector weights
-_DEFAULT_WEIGHTS: dict[str, float] = {
+# Default detector weights (immutable to prevent accidental mutation)
+_DEFAULT_WEIGHTS: MappingProxyType[str, float] = MappingProxyType({
     "pattern": 0.30,
     "heuristic": 0.25,
     "semantic": 0.25,
     "entropy": 0.10,
     "provenance": 0.10,
-}
+})
 
 
 class DetectionEngine:
@@ -50,7 +52,7 @@ class DetectionEngine:
         registry: DetectorRegistry | None = None,
     ):
         self.config = config or {}
-        self.clock = clock
+        self.clock = clock or SystemClockAdapter()
         self.registry = registry if registry is not None else DetectorRegistry()
         # Copy default weights to avoid mutating module-level dict (BUG fix)
         self.weights: dict[str, float] = dict(
@@ -59,26 +61,6 @@ class DetectionEngine:
         self.threat_threshold = self.config.get("threat_threshold", 0.65)
         self.max_content_length = self.config.get("max_content_length", 500_000)
         self.parallel = self.config.get("parallel_detectors", True)
-
-        # Only register default detectors if no registry was injected
-        if registry is None:
-            self._register_default_detectors()
-
-    def _register_default_detectors(self) -> None:
-        # Lazy imports to allow the engine to be instantiated without concrete detectors
-        # when a pre-populated registry is injected.
-        from .pattern_detector import PatternDetector
-        from .heuristic_detector import HeuristicDetector
-        from .semantic_detector import SemanticDetector
-        from .entropy_detector import EntropyDetector
-        from .provenance_detector import ProvenanceDetector
-
-        cfg = self.config
-        self.registry.register(PatternDetector(cfg.get("pattern_detector", {})))
-        self.registry.register(HeuristicDetector(cfg.get("heuristic_detector", {})))
-        self.registry.register(SemanticDetector(cfg.get("semantic_detector", {})))
-        self.registry.register(EntropyDetector(cfg.get("entropy_detector", {})))
-        self.registry.register(ProvenanceDetector(cfg.get("provenance_detector", {})))
 
     def register_detector(self, detector: BaseDetector, weight: float = 0.1) -> None:
         """Register a custom detector with a given weight."""
@@ -92,14 +74,8 @@ class DetectionEngine:
         """Run the full detection pipeline."""
         start = time.perf_counter()
 
-        # Use injected clock if available, otherwise fall back to inline generation
-        if self.clock is not None:
-            request_id = self.clock.generate_id()
-            timestamp = self.clock.now()
-        else:
-            import uuid as _uuid
-            request_id = _uuid.uuid4().hex[:16]
-            timestamp = time.time()
+        request_id = self.clock.generate_id()
+        timestamp = self.clock.now()
 
         result = ScanResult(
             request_id=request_id,
