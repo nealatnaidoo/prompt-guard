@@ -1,0 +1,26 @@
+# Broken Arrow Assessment
+# Generated: 2026-02-26T21:00:00Z
+# Project: prompt-guard
+
+status: assessed
+assessed_at: "2026-02-26T21:00:00Z"
+tech_stack:
+  language: python
+  framework: fastapi
+  runtime: uvicorn
+  python_version: ">=3.10"
+  containerised: true (Dockerfile)
+metrics:
+  source_files: 20
+  test_files: 4
+  total_loc: 2884
+  packages: 12 runtime + 4 dev
+governance:
+  manifest: missing
+  artifacts_dir: missing
+  evidence_dir: missing
+  evolution_dir: missing
+  remediation_dir: missing
+  outbox_dir: missing
+  claude_md: missing
+severity: full_retrofit

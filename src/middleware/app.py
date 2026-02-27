@@ -19,7 +19,16 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
+from ..adapters.clock import SystemClockAdapter
+from ..adapters.config import YamlFileConfigAdapter
+from ..adapters.audit import JsonlFileAuditAdapter
+from ..detectors.base import DetectorRegistry
 from ..detectors.engine import DetectionEngine
+from ..detectors.pattern_detector import PatternDetector
+from ..detectors.heuristic_detector import HeuristicDetector
+from ..detectors.semantic_detector import SemanticDetector
+from ..detectors.entropy_detector import EntropyDetector
+from ..detectors.provenance_detector import ProvenanceDetector
 from ..models.schemas import (
     HealthResponse,
     PolicyAction,
@@ -27,44 +36,60 @@ from ..models.schemas import (
     ScanResult,
     ThreatLevel,
 )
+from ..ports.audit import AuditPort
+from ..ports.clock import ClockPort
 from ..sanitizers.content_sanitizer import ContentSanitiser
-from ..utils.audit import AuditLogger
-from ..utils.config import load_config
 
 logger = structlog.get_logger(__name__)
 
 
-# ── Shared state ────────────────────────────────────────────────────────────
-
-class AppState:
-    engine: DetectionEngine
-    sanitiser: ContentSanitiser
-    audit: AuditLogger
-    config: dict[str, Any]
-    start_time: float
-    stats: dict[str, int]
-
-
-state = AppState()
-
-
-# ── Lifespan ────────────────────────────────────────────────────────────────
+# ── Lifespan (Composition Root) ───────────────────────────────────────────
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup
-    config = load_config()
-    state.config = config
-    state.engine = DetectionEngine(config.get("detection", {}))
-    state.sanitiser = ContentSanitiser(config.get("sanitiser", {}))
-    state.audit = AuditLogger(config.get("audit", {}))
-    state.start_time = time.time()
-    state.stats = defaultdict(int)
+    """Composition root — creates all dependencies and wires them together."""
+    # 1. Load config via ConfigPort adapter
+    config_adapter = YamlFileConfigAdapter()
+    config = config_adapter.load()
+
+    # 2. Create ClockPort adapter
+    clock: ClockPort = SystemClockAdapter()
+
+    # 3. Create AuditPort adapter
+    audit: AuditPort = JsonlFileAuditAdapter(config.get("audit", {}))
+
+    # 4. Create and populate DetectorRegistry with default detectors
+    detection_config = config.get("detection", {})
+    registry = DetectorRegistry()
+    registry.register(PatternDetector(detection_config.get("pattern_detector", {})))
+    registry.register(HeuristicDetector(detection_config.get("heuristic_detector", {})))
+    registry.register(SemanticDetector(detection_config.get("semantic_detector", {})))
+    registry.register(EntropyDetector(detection_config.get("entropy_detector", {})))
+    registry.register(ProvenanceDetector(detection_config.get("provenance_detector", {})))
+
+    # 5. Create DetectionEngine with injected dependencies
+    engine = DetectionEngine(
+        config=detection_config,
+        clock=clock,
+        registry=registry,
+    )
+
+    # 6. Create ContentSanitiser
+    sanitiser = ContentSanitiser(config.get("sanitiser", {}))
+
+    # 7. Store in app.state
+    app.state.config = config
+    app.state.clock = clock
+    app.state.audit = audit
+    app.state.engine = engine
+    app.state.sanitiser = sanitiser
+    app.state.start_time = clock.now()
+    app.state.stats = defaultdict(int)
 
     logger.info(
         "prompt_guard_started",
-        detectors=state.engine.registry.names(),
-        threshold=state.engine.threat_threshold,
+        detectors=engine.registry.names(),
+        threshold=engine.threat_threshold,
     )
     yield
     # Shutdown
@@ -120,6 +145,7 @@ class StatsResponse(BaseModel):
 async def scan_content(request: ScanRequest, http_request: Request):
     """Scan content for injection, poisoning, and other threats."""
     try:
+        state = http_request.app.state
         result = await state.engine.scan(request)
 
         # Audit log
@@ -147,6 +173,8 @@ async def scan_content(request: ScanRequest, http_request: Request):
 async def sanitise_content(request: SanitiseRequest, http_request: Request):
     """Scan content and return sanitised version."""
     try:
+        state = http_request.app.state
+
         # First scan
         scan_req = ScanRequest(
             content=request.content,
@@ -194,24 +222,26 @@ async def sanitise_content(request: SanitiseRequest, http_request: Request):
 
 
 @app.get("/health", response_model=HealthResponse)
-async def health_check():
+async def health_check(http_request: Request):
     """Service health check."""
+    state = http_request.app.state
     return HealthResponse(
         status="ok",
         detectors_loaded=len(state.engine.registry),
-        uptime_seconds=time.time() - state.start_time,
+        uptime_seconds=state.clock.now() - state.start_time,
     )
 
 
 @app.get("/stats", response_model=StatsResponse)
-async def get_stats():
+async def get_stats(http_request: Request):
     """Runtime statistics."""
+    state = http_request.app.state
     total = state.stats.get("total_scans", 0)
     threats = state.stats.get("threats_detected", 0)
     total_latency = state.stats.get("total_latency_ms", 0)
 
     return StatsResponse(
-        uptime_seconds=time.time() - state.start_time,
+        uptime_seconds=state.clock.now() - state.start_time,
         total_scans=total,
         threats_detected=threats,
         threat_rate=threats / total if total > 0 else 0.0,

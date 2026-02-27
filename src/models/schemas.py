@@ -5,8 +5,6 @@ Pure stdlib implementation — no pydantic dependency required.
 
 from __future__ import annotations
 
-import time
-import uuid
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
@@ -79,8 +77,8 @@ class DetectorFinding:
 @dataclass
 class ScanResult:
     """Complete analysis result."""
-    request_id: str = field(default_factory=lambda: uuid.uuid4().hex[:16])
-    timestamp: float = field(default_factory=time.time)
+    request_id: str = ""
+    timestamp: float = 0.0
     threat_level: ThreatLevel = ThreatLevel.CLEAN
     threat_score: float = 0.0
     action_taken: PolicyAction = PolicyAction.PASS
@@ -118,4 +116,34 @@ class ScanResult:
             "content_hash": self.content_hash,
             "latency_ms": self.latency_ms,
             "summary": self.summary,
+        }
+
+
+@dataclass
+class HealthResponse:
+    """Health check response model."""
+    status: str
+    detectors_loaded: int
+    uptime_seconds: float
+
+
+@dataclass
+class SanitiseResult:
+    """Result of a sanitisation pass."""
+    content: str
+    changes: list[str]
+    original_length: int
+    sanitised_length: int
+
+    @property
+    def was_modified(self) -> bool:
+        return len(self.changes) > 0
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "content": self.content,
+            "changes": self.changes,
+            "original_length": self.original_length,
+            "sanitised_length": self.sanitised_length,
+            "was_modified": self.was_modified,
         }

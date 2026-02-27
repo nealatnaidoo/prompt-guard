@@ -5,10 +5,7 @@ Uses only stdlib unittest + asyncio. No pytest-asyncio required.
 
 import asyncio
 import base64
-import sys
 import unittest
-
-sys.path.insert(0, "/sessions/admiring-peaceful-gauss/prompt-guard")
 
 from src.detectors.engine import DetectionEngine
 from src.models.schemas import ScanRequest, ContentSource, ThreatLevel
@@ -17,7 +14,7 @@ from src.sanitizers.content_sanitizer import ContentSanitiser
 
 def run_async(coro):
     """Helper to run async tests."""
-    return asyncio.get_event_loop().run_until_complete(coro)
+    return asyncio.run(coro)
 
 
 class TestDirectInjection(unittest.TestCase):

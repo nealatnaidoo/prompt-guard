@@ -1,0 +1,57 @@
+{
+  "tasks": ["T006", "T007", "T008", "T009", "T010", "T011", "T012"],
+  "epic": "Epic 2: Hexagonal Port Extraction",
+  "agent": "back",
+  "timestamp": "2026-02-27T00:00:00Z",
+  "tests": {
+    "total": 281,
+    "passed": 281,
+    "failed": 0,
+    "baseline": 251,
+    "new_tests_added": 30
+  },
+  "quality_gates": {
+    "all_tests_pass": true,
+    "no_domain_adapter_imports": true,
+    "determinism_verified": true,
+    "ports_have_type_annotations": true,
+    "in_memory_adapters_exist": true,
+    "backward_compatibility": true
+  },
+  "files_created": [
+    "src/ports/__init__.py",
+    "src/ports/clock.py",
+    "src/ports/config.py",
+    "src/ports/audit.py",
+    "src/adapters/__init__.py",
+    "src/adapters/clock.py",
+    "src/adapters/config.py",
+    "src/adapters/audit.py",
+    "tests/helpers/__init__.py",
+    "tests/helpers/fakes.py",
+    "tests/test_ports.py",
+    "tests/test_adapters.py",
+    "tests/test_determinism.py"
+  ],
+  "files_modified": [
+    "src/models/schemas.py",
+    "src/detectors/engine.py",
+    "src/middleware/app.py",
+    "src/sanitizers/content_sanitizer.py",
+    "tests/conftest.py",
+    "tests/test_engine_characterisation.py"
+  ],
+  "bugs_fixed": [
+    "Mutable default weights dict (engine.weights referenced _DEFAULT_WEIGHTS directly)",
+    "Logger kwargs bug (structlog-style kwargs on stdlib logger in error paths)"
+  ],
+  "gaps_closed": [
+    "GAP-1: Non-deterministic defaults removed from ScanResult",
+    "GAP-2: Module-level AppState singleton replaced with composition root",
+    "GAP-3: Explicit ports package created (ClockPort, ConfigPort, AuditPort)",
+    "GAP-4: Config loading behind ConfigPort",
+    "GAP-5: Audit logging behind AuditPort",
+    "GAP-6: Engine accepts injected registry (concrete detector imports now lazy)",
+    "GAP-7: SanitiseResult moved to domain models as dataclass"
+  ]
+}

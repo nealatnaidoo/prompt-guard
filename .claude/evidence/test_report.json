@@ -1,0 +1,63 @@
+{
+  "report_date": "2026-02-27",
+  "report_type": "deep_verify",
+  "test_framework": "pytest 8.4.2",
+  "python_version": "3.12.9",
+  "total_tests": 309,
+  "passed": 309,
+  "failed": 0,
+  "errors": 0,
+  "skipped": 0,
+  "duration_seconds": 1.70,
+  "coverage": {
+    "total_statements": 1061,
+    "total_missed": 180,
+    "total_coverage_percent": 83,
+    "threshold_percent": 80,
+    "threshold_met": true,
+    "by_module": {
+      "src/models/schemas.py": 98,
+      "src/detectors/engine.py": 99,
+      "src/detectors/base.py": 92,
+      "src/detectors/pattern_detector.py": 95,
+      "src/detectors/heuristic_detector.py": 91,
+      "src/detectors/semantic_detector.py": 96,
+      "src/detectors/entropy_detector.py": 82,
+      "src/detectors/provenance_detector.py": 82,
+      "src/sanitizers/content_sanitizer.py": 100,
+      "src/middleware/app.py": 75,
+      "src/ports/clock.py": 100,
+      "src/ports/config.py": 100,
+      "src/ports/audit.py": 100,
+      "src/adapters/clock.py": 100,
+      "src/adapters/config.py": 100,
+      "src/adapters/audit.py": 100,
+      "src/utils/config.py": 59,
+      "src/utils/audit.py": 88,
+      "src/cli.py": 0,
+      "src/client.py": 0
+    }
+  },
+  "test_files": {
+    "test_adapters.py": 11,
+    "test_api_health_stats.py": 12,
+    "test_api_integration.py": 16,
+    "test_attack_vectors.py": 31,
+    "test_determinism.py": 8,
+    "test_engine_characterisation.py": 69,
+    "test_engine_scoring.py": 4,
+    "test_ports.py": 11,
+    "test_sanitiser.py": 7,
+    "test_sanitiser_characterisation.py": 140
+  },
+  "quality_gates": {
+    "gate_1_tests_pass": true,
+    "gate_2_coverage_80": true,
+    "gate_3_determinism": true,
+    "gate_4_import_boundary": "PASS_WITH_NOTES",
+    "gate_5_no_singleton": true,
+    "gate_6_type_hints": "advisory",
+    "gate_7_backward_compat": true,
+    "gate_8_char_tests": true
+  }
+}

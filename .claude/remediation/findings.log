@@ -1,0 +1,8 @@
+# Findings Log
+
+Pipe-delimited log of coding agent findings from QA reviews.
+Format: date | task_id | severity | category | finding | file:line
+
+---
+2026-02-26 | T005 | medium | BUG | logger.error() uses structlog-style kwargs (detector=, error=) but engine uses stdlib logging; error handling in scan() re-raises TypeError instead of swallowing detector errors | src/detectors/engine.py:117,126
+2026-02-26 | T005 | low | BUG | _DEFAULT_WEIGHTS is a module-level mutable dict; register_detector() mutates it via shared reference when no custom weights configured, polluting subsequent engine instances | src/detectors/engine.py:29,70

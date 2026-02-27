@@ -13,6 +13,8 @@ from typing import Any
 
 import logging
 
+from ..models.schemas import SanitiseResult
+
 logger = logging.getLogger(__name__)
 
 
@@ -214,30 +216,6 @@ class ContentSanitiser:
         )
 
 
-class SanitiseResult:
-    """Result of a sanitisation pass."""
-
-    def __init__(
-        self,
-        content: str,
-        changes: list[str],
-        original_length: int,
-        sanitised_length: int,
-    ):
-        self.content = content
-        self.changes = changes
-        self.original_length = original_length
-        self.sanitised_length = sanitised_length
-
-    @property
-    def was_modified(self) -> bool:
-        return len(self.changes) > 0
-
-    def to_dict(self) -> dict[str, Any]:
-        return {
-            "content": self.content,
-            "changes": self.changes,
-            "original_length": self.original_length,
-            "sanitised_length": self.sanitised_length,
-            "was_modified": self.was_modified,
-        }
+# SanitiseResult is now imported from src.models.schemas
+# Re-exported here for backward compatibility
+__all__ = ["ContentSanitiser", "SanitiseResult"]

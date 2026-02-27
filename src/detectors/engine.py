@@ -10,11 +10,6 @@ from typing import Any
 import logging
 
 from .base import BaseDetector, DetectorRegistry
-from .pattern_detector import PatternDetector
-from .heuristic_detector import HeuristicDetector
-from .semantic_detector import SemanticDetector
-from .entropy_detector import EntropyDetector
-from .provenance_detector import ProvenanceDetector
 from ..models.schemas import (
     DetectorFinding,
     PolicyAction,
@@ -22,11 +17,12 @@ from ..models.schemas import (
     ScanResult,
     ThreatLevel,
 )
+from ..ports.clock import ClockPort
 
 logger = logging.getLogger(__name__)
 
 # Default detector weights
-_DEFAULT_WEIGHTS = {
+_DEFAULT_WEIGHTS: dict[str, float] = {
     "pattern": 0.30,
     "heuristic": 0.25,
     "semantic": 0.25,
@@ -46,17 +42,37 @@ class DetectionEngine:
     5. Return structured result
     """
 
-    def __init__(self, config: dict[str, Any] | None = None):
+    def __init__(
+        self,
+        config: dict[str, Any] | None = None,
+        *,
+        clock: ClockPort | None = None,
+        registry: DetectorRegistry | None = None,
+    ):
         self.config = config or {}
-        self.registry = DetectorRegistry()
-        self.weights = self.config.get("detector_weights", _DEFAULT_WEIGHTS)
+        self.clock = clock
+        self.registry = registry if registry is not None else DetectorRegistry()
+        # Copy default weights to avoid mutating module-level dict (BUG fix)
+        self.weights: dict[str, float] = dict(
+            self.config.get("detector_weights", _DEFAULT_WEIGHTS)
+        )
         self.threat_threshold = self.config.get("threat_threshold", 0.65)
         self.max_content_length = self.config.get("max_content_length", 500_000)
         self.parallel = self.config.get("parallel_detectors", True)
 
-        self._register_default_detectors()
+        # Only register default detectors if no registry was injected
+        if registry is None:
+            self._register_default_detectors()
 
     def _register_default_detectors(self) -> None:
+        # Lazy imports to allow the engine to be instantiated without concrete detectors
+        # when a pre-populated registry is injected.
+        from .pattern_detector import PatternDetector
+        from .heuristic_detector import HeuristicDetector
+        from .semantic_detector import SemanticDetector
+        from .entropy_detector import EntropyDetector
+        from .provenance_detector import ProvenanceDetector
+
         cfg = self.config
         self.registry.register(PatternDetector(cfg.get("pattern_detector", {})))
         self.registry.register(HeuristicDetector(cfg.get("heuristic_detector", {})))
@@ -76,7 +92,18 @@ class DetectionEngine:
         """Run the full detection pipeline."""
         start = time.perf_counter()
 
+        # Use injected clock if available, otherwise fall back to inline generation
+        if self.clock is not None:
+            request_id = self.clock.generate_id()
+            timestamp = self.clock.now()
+        else:
+            import uuid as _uuid
+            request_id = _uuid.uuid4().hex[:16]
+            timestamp = time.time()
+
         result = ScanResult(
+            request_id=request_id,
+            timestamp=timestamp,
             content_hash=hashlib.sha256(request.content.encode()).hexdigest()[:32],
         )
 
@@ -114,7 +141,11 @@ class DetectionEngine:
             results = await asyncio.gather(*tasks, return_exceptions=True)
             for i, r in enumerate(results):
                 if isinstance(r, Exception):
-                    logger.error("detector_error", detector=detectors[i].name, error=str(r))
+                    logger.error(
+                        "detector_error: detector=%s error=%s",
+                        detectors[i].name,
+                        str(r),
+                    )
                 else:
                     all_findings.extend(r)
         else:
@@ -123,7 +154,11 @@ class DetectionEngine:
                     findings = await detector.scan(request.content, metadata)
                     all_findings.extend(findings)
                 except Exception as e:
-                    logger.error("detector_error", detector=detector.name, error=str(e))
+                    logger.error(
+                        "detector_error: detector=%s error=%s",
+                        detector.name,
+                        str(e),
+                    )
 
         result.findings = all_findings
 
@@ -173,10 +208,10 @@ class DetectionEngine:
 
         # Boost: multiple detectors agreeing increases confidence
         agreeing_detectors = sum(1 for s in detector_scores.values() if s > 0.5)
-        if agreeing_detectors >= 3:
-            base_score = min(1.0, base_score * 1.15)
-        elif agreeing_detectors >= 4:
+        if agreeing_detectors >= 4:
             base_score = min(1.0, base_score * 1.25)
+        elif agreeing_detectors >= 3:
+            base_score = min(1.0, base_score * 1.15)
 
         # Critical finding override: any single finding >= 0.95 forces high score
         max_finding = max((f.score * f.confidence for f in findings), default=0.0)

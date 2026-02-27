@@ -1,7 +1,7 @@
 """Tests for the content sanitiser."""
 
 import pytest
-from prompt_guard.src.sanitizers.content_sanitizer import ContentSanitiser
+from src.sanitizers.content_sanitizer import ContentSanitiser
 
 
 @pytest.fixture
