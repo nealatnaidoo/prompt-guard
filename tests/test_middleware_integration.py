@@ -28,6 +28,7 @@ from src.detectors.entropy_detector import EntropyDetector
 from src.detectors.heuristic_detector import HeuristicDetector
 from src.detectors.pattern_detector import PatternDetector
 from src.detectors.provenance_detector import ProvenanceDetector
+from src.detectors.semantic_detector import SemanticDetector
 from src.sanitizers.content_sanitizer import ContentSanitiser
 from tests.helpers.fakes import FixedClockAdapter, NullAuditAdapter
 
@@ -44,7 +45,6 @@ def _build_test_app_with_middleware():
         get_stats,
         v1_router,
     )
-    from src.middleware.auth import require_api_key
     from src.middleware.rate_limit import RateLimitMiddleware
     from src.middleware.request_id import RequestIdMiddleware
     from src.middleware.request_logging import RequestLoggingMiddleware
@@ -91,7 +91,6 @@ def _build_test_app_with_middleware():
     # Re-register legacy routes
     @test_app.post("/scan", response_model=ScanResult)
     async def _scan(request: ScanRequest, http_request=None):
-        from fastapi import Request as R
         return await scan_content(request, http_request)
 
     @test_app.post("/sanitise", response_model=SanitiseResponse)
@@ -194,7 +193,7 @@ class TestLegacyRoutes:
 
 
 class TestV1AuthRequired:
-    """/v1/ routes require a valid X-API-Key."""
+    """/v1/ routes require a valid Authorization: Bearer token."""
 
     def test_v1_scan_without_key_401(self, full_app_client):
         resp = full_app_client.post("/v1/scan", json={"content": "hello"})
@@ -205,7 +204,7 @@ class TestV1AuthRequired:
         resp = full_app_client.post(
             "/v1/scan",
             json={"content": "hello world"},
-            headers={"X-API-Key": "test-api-key-xyz"},
+            headers={"Authorization": "Bearer test-api-key-xyz"},
         )
         assert resp.status_code == 200
         assert "threat_level" in resp.json()
@@ -214,7 +213,7 @@ class TestV1AuthRequired:
         resp = full_app_client.post(
             "/v1/scan",
             json={"content": "hello"},
-            headers={"X-API-Key": "wrong-key"},
+            headers={"Authorization": "Bearer wrong-key"},
         )
         assert resp.status_code == 401
 
@@ -226,7 +225,7 @@ class TestV1AuthRequired:
         resp = full_app_client.post(
             "/v1/sanitise",
             json={"content": "hello world"},
-            headers={"X-API-Key": "test-api-key-xyz"},
+            headers={"Authorization": "Bearer test-api-key-xyz"},
         )
         assert resp.status_code == 200
 
@@ -237,9 +236,24 @@ class TestV1AuthRequired:
     def test_v1_stats_with_valid_key(self, full_app_client):
         resp = full_app_client.get(
             "/v1/stats",
-            headers={"X-API-Key": "test-api-key-xyz"},
+            headers={"Authorization": "Bearer test-api-key-xyz"},
         )
         assert resp.status_code == 200
+
+    def test_v1_health_without_key_200(self, full_app_client):
+        """BUG-004: /v1/health must be accessible without authentication."""
+        resp = full_app_client.get("/v1/health")
+        assert resp.status_code == 200
+        assert resp.json()["status"] == "ok"
+
+    def test_v1_health_response_schema(self, full_app_client):
+        """BUG-004: /v1/health returns same schema as /health."""
+        resp = full_app_client.get("/v1/health")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert "status" in data
+        assert "detectors_loaded" in data
+        assert "uptime_seconds" in data
 
 
 # ---------------------------------------------------------------------------

@@ -76,7 +76,7 @@ class PromptGuardClient:
         self.api_key = api_key
         headers: dict[str, str] = {}
         if api_key:
-            headers["X-API-Key"] = api_key
+            headers["Authorization"] = f"Bearer {api_key}"
         self._client = httpx.AsyncClient(
             base_url=self.base_url, timeout=timeout, headers=headers
         )

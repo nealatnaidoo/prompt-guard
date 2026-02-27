@@ -13,7 +13,6 @@ Exposes:
 
 from __future__ import annotations
 
-import time
 from collections import defaultdict
 from contextlib import asynccontextmanager
 from typing import Any
@@ -314,6 +313,12 @@ async def v1_sanitise(request: SanitiseRequest, http_request: Request):
 @v1_router.get("/stats", response_model=StatsResponse)
 async def v1_stats(http_request: Request):
     return await get_stats(http_request)
+
+
+# /v1/health is exempt from auth (registered outside v1_router which has auth dependency)
+@app.get("/v1/health", response_model=HealthResponse)
+async def v1_health(http_request: Request):
+    return await health_check(http_request)
 
 
 app.include_router(v1_router)

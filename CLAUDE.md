@@ -233,7 +233,7 @@ pytest tests/ -v --asyncio-mode=auto
 
 ### Coverage Requirements
 
-- Minimum **80%** (per org.yaml `coverage_threshold`)
+- Minimum **100%** (per spec NFR-11.1)
 - All detectors **must** have test coverage
 - All API endpoints **must** have integration tests
 

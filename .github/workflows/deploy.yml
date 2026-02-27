@@ -38,7 +38,7 @@ jobs:
         run: mypy src/
 
       - name: Tests with coverage (pytest)
-        run: pytest --cov=src --cov-report=term-missing --cov-fail-under=80 -x -q --tb=short
+        run: pytest --cov=src --cov-report=term-missing --cov-fail-under=100 -x -q --tb=short
 
   # ---- Deploy to Fly.io ----
   deploy:

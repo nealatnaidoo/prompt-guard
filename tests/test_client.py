@@ -2,8 +2,7 @@
 
 from __future__ import annotations
 
-from unittest.mock import AsyncMock, patch, MagicMock
-from typing import Any
+from unittest.mock import AsyncMock, MagicMock
 
 import httpx
 import pytest
@@ -122,11 +121,11 @@ class TestClientConstruction:
 
     def test_api_key_sets_header(self):
         client = PromptGuardClient(api_key="my-secret-key")
-        assert client._client.headers["X-API-Key"] == "my-secret-key"
+        assert client._client.headers["Authorization"] == "Bearer my-secret-key"
 
     def test_no_api_key_no_header(self):
         client = PromptGuardClient()
-        assert "X-API-Key" not in client._client.headers
+        assert "Authorization" not in client._client.headers
 
     def test_api_key_backward_compatible(self):
         """Client without api_key still works (backward compat)."""
@@ -442,7 +441,7 @@ class TestClientHealthAndStats:
 # ---------------------------------------------------------------------------
 
 class TestClientApiKeyHeader:
-    """Verify API key is sent as X-API-Key header on all requests."""
+    """Verify API key is sent as Authorization: Bearer header on all requests."""
 
     @pytest.mark.asyncio
     async def test_scan_sends_api_key_header(self):
@@ -454,7 +453,7 @@ class TestClientApiKeyHeader:
         client._client = AsyncMock()
         client._client.post = AsyncMock(return_value=mock_response)
         # Preserve default headers behaviour
-        client._client.headers = httpx.Headers({"X-API-Key": "secret-123"})
+        client._client.headers = httpx.Headers({"Authorization": "Bearer secret-123"})
 
         await client.scan("test input")
         # The api_key header is set at client level, not per-request.
@@ -463,9 +462,9 @@ class TestClientApiKeyHeader:
 
     @pytest.mark.asyncio
     async def test_no_api_key_no_header_on_requests(self):
-        """Without api_key, no X-API-Key header is set."""
+        """Without api_key, no Authorization header is set."""
         client = PromptGuardClient()
-        assert "X-API-Key" not in client._client.headers
+        assert "Authorization" not in client._client.headers
 
     @pytest.mark.asyncio
     async def test_api_key_sent_on_health(self):

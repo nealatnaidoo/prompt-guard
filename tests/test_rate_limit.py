@@ -6,10 +6,7 @@ Task: T016
 from __future__ import annotations
 
 import time
-from contextlib import asynccontextmanager
-from unittest.mock import patch
 
-import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
@@ -126,17 +123,17 @@ class TestRateLimitMiddleware:
             assert "retry-after" in resp.headers
 
     def test_different_clients_have_separate_buckets(self):
-        """Per-API-key limiting: different keys get independent limits."""
+        """Per-Bearer-token limiting: different tokens get independent limits."""
         app = _make_rate_limit_app(burst_size=1, requests_per_minute=60)
         with TestClient(app) as client:
             # Client A exhausts burst
-            resp = client.get("/test", headers={"X-API-Key": "key-a"})
+            resp = client.get("/test", headers={"Authorization": "Bearer key-a"})
             assert resp.status_code == 200
-            resp = client.get("/test", headers={"X-API-Key": "key-a"})
+            resp = client.get("/test", headers={"Authorization": "Bearer key-a"})
             assert resp.status_code == 429
 
             # Client B still has tokens
-            resp = client.get("/test", headers={"X-API-Key": "key-b"})
+            resp = client.get("/test", headers={"Authorization": "Bearer key-b"})
             assert resp.status_code == 200
 
     def test_unknown_client_when_no_ip_or_key(self):

@@ -353,3 +353,46 @@ fast_track:
   - minor_refactor
   require_qa: true
   max_files_changed: 3
+
+# ──────────────────────────────────────────────────────────────────────────────
+# VERIFY DEEP (2026-02-27) — Production Deployment Feature Review
+# ──────────────────────────────────────────────────────────────────────────────
+
+  - id: BUG-003
+    source: verify_deep
+    priority: critical
+    status: resolved
+    resolved: '2026-02-27'
+    summary: Auth middleware uses X-API-Key instead of Authorization Bearer token
+    file: src/middleware/auth.py
+    created: '2026-02-27'
+
+  - id: BUG-004
+    source: verify_deep
+    priority: critical
+    status: resolved
+    resolved: '2026-02-27'
+    summary: Missing /v1/health endpoint required by spec
+    file: src/middleware/app.py
+    created: '2026-02-27'
+
+  - id: BUG-005
+    source: verify_deep
+    priority: high
+    status: resolved
+    resolved: '2026-02-27'
+    summary: CI workflow coverage threshold is 80% but spec requires 100%
+    file: .github/workflows/ci.yml
+    created: '2026-02-27'
+
+reviews:
+  last_verify_review:
+    date: '2026-02-27'
+    mode: deep
+    result: PASS
+    report_file: .claude/remediation/verify_deep_2026-02-27.md
+    test_evidence: .claude/evidence/quality_gates_v2_report.json
+    tests_total: 486
+    tests_passed: 486
+    coverage_percent: 100
+    blocking_issues: 0

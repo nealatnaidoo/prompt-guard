@@ -72,10 +72,12 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         self._buckets: dict[str, TokenBucket] = {}
 
     def _get_client_key(self, request: Request) -> str:
-        """Determine rate limit key: API key if present, else client IP."""
-        api_key = request.headers.get("X-API-Key")
-        if api_key:
-            return f"key:{api_key}"
+        """Determine rate limit key: Bearer token if present, else client IP."""
+        auth_header = request.headers.get("Authorization")
+        if auth_header and auth_header.startswith("Bearer "):
+            token = auth_header[7:]
+            if token:
+                return f"key:{token}"
         if request.client:
             return f"ip:{request.client.host}"
         return "ip:unknown"

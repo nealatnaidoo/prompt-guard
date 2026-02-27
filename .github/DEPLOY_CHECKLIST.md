@@ -17,7 +17,7 @@ Use this checklist before deploying Prompt Guard to Fly.io.
 
 ## Every Deploy
 
-- [ ] All tests pass (`pytest --cov=src --cov-fail-under=80`)
+- [ ] All tests pass (`pytest --cov=src --cov-fail-under=100`)
 - [ ] No lint errors (`ruff check src/ tests/`)
 - [ ] No type errors (`mypy src/`)
 - [ ] No secrets in code (no hardcoded API keys, passwords, tokens)
