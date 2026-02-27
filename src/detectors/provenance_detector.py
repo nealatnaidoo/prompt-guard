@@ -73,10 +73,10 @@ class ProvenanceDetector(BaseDetector):
             findings.append(
                 DetectorFinding(
                     detector=self.name,
-                    score=0.30,
+                    score=0.15,
                     category=ThreatCategory.POISONED_CONTEXT,
                     evidence="Content source is unknown/undeclared",
-                    confidence=0.50,
+                    confidence=0.40,
                     details={"source": source_str},
                 )
             )
@@ -177,7 +177,7 @@ class ProvenanceDetector(BaseDetector):
                 content,
             ))
             total_lines = content.count('\n') + 1
-            if total_lines > 5 and imperative_lines / total_lines > 0.3:
+            if total_lines > 10 and imperative_lines / total_lines > 0.5:
                 findings.append(
                     DetectorFinding(
                         detector=self.name,
@@ -195,7 +195,7 @@ class ProvenanceDetector(BaseDetector):
                 r'(?i)\b(?:AI|assistant|model|chatbot|GPT|Claude|LLM)\b.*?(?:you\s+(?:should|must)|please|ignore)',
                 content,
             ))
-            if ai_mentions > 0:
+            if ai_mentions >= 2:
                 findings.append(
                     DetectorFinding(
                         detector=self.name,

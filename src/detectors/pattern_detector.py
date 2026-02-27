@@ -76,6 +76,27 @@ _INJECTION_PATTERNS: list[tuple[str, str, ThreatCategory, float, float]] = [
         0.88,
         0.85,
     ),
+    (
+        "persona_switch",
+        r"(?i)(?:(?:from\s+now\s+on|henceforth|for\s+the\s+rest)\s+(?:you\s+are|you're|act\s+as|behave\s+as|respond\s+as)|(?:imagine|suppose|assume|consider)\s+(?:you(?:'re|\s+are|\s+were)|that\s+you(?:'re|\s+are))\s+(?:a|an|the)\b|play\s+(?:the\s+)?(?:role|part|character)\s+of|(?:can|could|would)\s+you\s+(?:be|act\s+as|pretend|play)\b)",
+        ThreatCategory.JAILBREAK,
+        0.85,
+        0.82,
+    ),
+    (
+        "hypothetical_simple",
+        r"(?i)(?:(?:what\s+if|suppose|assuming|imagine|consider)\s+(?:there\s+(?:were|are)\s+no|you\s+(?:had|have|were)\s+(?:no|free\s+from|without))\s+(?:rules?|restrictions?|limits?|guidelines?|filters?|safeguards?|constraints?)|in\s+a\s+(?:world|scenario|situation)\s+(?:where|with(?:out))\s+(?:no\s+)?(?:rules?|restrictions?|limits?|safety))",
+        ThreatCategory.JAILBREAK,
+        0.82,
+        0.78,
+    ),
+    (
+        "jailbreak_extended",
+        r"(?i)\b(?:jailbreak|jail\s*break|unlock(?:ed)?\s+mode|(?:un)?censored\s+(?:mode|version)|(?:no|zero|without)\s+(?:filter|restriction|safety|guardrail)s?\s+mode|(?:enable|activate|enter|switch\s+to)\s+(?:god|admin|sudo|unrestricted|unfiltered|unlimited)\s+mode)\b",
+        ThreatCategory.JAILBREAK,
+        0.90,
+        0.87,
+    ),
 
     # ── Data exfiltration ───────────────────────────────────────────────
     (
@@ -169,6 +190,36 @@ _INJECTION_PATTERNS: list[tuple[str, str, ThreatCategory, float, float]] = [
         ThreatCategory.ENCODING_ATTACK,
         0.68,
         0.60,
+    ),
+    (
+        "multilingual_override",
+        (
+            r"(?i)(?:"
+            # German
+            r"(?:vergiss|ignorier[e]?|überspring[e]?|missacht[e]?)\s+(?:alle[ns]?\s+)?(?:vorherige[n]?\s+)?(?:Anweisungen|Instruktionen|Regeln|Befehle)"
+            r"|"
+            # French
+            r"(?:ignore[zr]?|oublie[zr]?)\s+(?:les?\s+)?(?:instructions?\s+)?(?:précédentes?|antérieures?|ci-dessus)"
+            r"|"
+            # Spanish
+            r"(?:ignora|olvida|descarta)\s+(?:las?\s+)?(?:instrucciones?\s+)?(?:previas?|anteriores?)"
+            r"|"
+            # Portuguese
+            r"(?:ignore|esqueça|descarte)\s+(?:as?\s+)?(?:instruções?\s+)?(?:anteriores?|prévias?)"
+            r"|"
+            # Chinese (simplified)
+            r"忽略|无视|忘记|丢弃|之前的指令|先前的指示"
+            r"|"
+            # Japanese
+            r"(?:無視|忘れて|以前の指示)"
+            r"|"
+            # Korean
+            r"(?:무시|잊어|이전\s*지시)"
+            r")"
+        ),
+        ThreatCategory.INJECTION,
+        0.90,
+        0.85,
     ),
 ]
 

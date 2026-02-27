@@ -181,6 +181,12 @@ class DetectionEngine:
 
         base_score = weighted_sum / weight_sum
 
+        # Dominant detector floor: a strong single-detector signal
+        # should not be drowned by quiet detectors
+        max_detector_score = max(detector_scores.values(), default=0.0)
+        if max_detector_score >= 0.70:
+            base_score = max(base_score, max_detector_score * 0.65)
+
         # Boost: multiple detectors agreeing increases confidence
         agreeing_detectors = sum(1 for s in detector_scores.values() if s > 0.5)
         if agreeing_detectors >= 4:
