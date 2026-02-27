@@ -54,7 +54,6 @@ class DetectionEngine:
         self.config = config or {}
         self.clock = clock or SystemClockAdapter()
         self.registry = registry if registry is not None else DetectorRegistry()
-        # Copy default weights to avoid mutating module-level dict (BUG fix)
         self.weights: dict[str, float] = dict(
             self.config.get("detector_weights", _DEFAULT_WEIGHTS)
         )

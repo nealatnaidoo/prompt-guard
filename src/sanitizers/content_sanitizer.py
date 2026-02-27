@@ -11,11 +11,8 @@ import re
 import unicodedata
 from typing import Any
 
-import logging
-
+from ..models.confusables import CONFUSABLE_MAP
 from ..models.schemas import SanitiseResult
-
-logger = logging.getLogger(__name__)
 
 
 # Tags that look like AI system delimiters
@@ -42,21 +39,8 @@ _INVISIBLE_CHARS = set(
     '\u202a\u202b\u202c\u202d\u202e'  # directional overrides
 )
 
-# Unicode confusable mappings (Cyrillic → Latin, fullwidth → ASCII, etc.)
-_CONFUSABLE_MAP: dict[str, str] = {
-    '\u0410': 'A', '\u0412': 'B', '\u0421': 'C', '\u0415': 'E',
-    '\u041d': 'H', '\u041a': 'K', '\u041c': 'M', '\u041e': 'O',
-    '\u0420': 'P', '\u0422': 'T', '\u0425': 'X', '\u0430': 'a',
-    '\u0435': 'e', '\u043e': 'o', '\u0440': 'p', '\u0441': 'c',
-    '\u0445': 'x', '\u0443': 'y', '\u0455': 's', '\u0456': 'i',
-    '\u0458': 'j', '\u04bb': 'h',
-}
-# Add fullwidth ASCII variants
-for offset in range(26):
-    _CONFUSABLE_MAP[chr(0xFF21 + offset)] = chr(0x41 + offset)  # A-Z
-    _CONFUSABLE_MAP[chr(0xFF41 + offset)] = chr(0x61 + offset)  # a-z
-for offset in range(10):
-    _CONFUSABLE_MAP[chr(0xFF10 + offset)] = chr(0x30 + offset)  # 0-9
+# Unicode confusable mappings (imported from shared module)
+_CONFUSABLE_MAP: dict[str, str] = CONFUSABLE_MAP
 
 
 class ContentSanitiser:
@@ -216,6 +200,5 @@ class ContentSanitiser:
         )
 
 
-# SanitiseResult is now imported from src.models.schemas
-# Re-exported here for backward compatibility
+# Re-exported for backward compatibility with existing imports
 __all__ = ["ContentSanitiser", "SanitiseResult"]

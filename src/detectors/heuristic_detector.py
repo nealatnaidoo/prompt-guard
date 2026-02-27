@@ -7,13 +7,13 @@ exact string matches.
 
 from __future__ import annotations
 
-import math
 import re
 import unicodedata
 from collections import Counter
 from typing import Any
 
 from .base import BaseDetector
+from ..models.confusables import CYRILLIC_CONFUSABLES
 from ..models.schemas import DetectorFinding, ThreatCategory
 
 
@@ -27,14 +27,9 @@ _IMPERATIVE_STARTERS = re.compile(
 # Suspicious Unicode categories
 _SUSPICIOUS_UNICODE_CATS = {"Cf", "Mn", "Co", "Cn"}  # format, non-spacing, private-use, unassigned
 
-# Characters commonly used as confusables
+# Characters commonly used as confusables (Cyrillic homoglyphs + extra suspicious chars)
 _CONFUSABLE_PAIRS: dict[str, str] = {
-    "\u0410": "A", "\u0412": "B", "\u0421": "C", "\u0415": "E",
-    "\u041d": "H", "\u041a": "K", "\u041c": "M", "\u041e": "O",
-    "\u0420": "P", "\u0422": "T", "\u0425": "X", "\u0430": "a",
-    "\u0435": "e", "\u043e": "o", "\u0440": "p", "\u0441": "c",
-    "\u0445": "x", "\u0443": "y", "\u0455": "s", "\u0456": "i",
-    "\u0458": "j", "\u04bb": "h",
+    **CYRILLIC_CONFUSABLES,
     "\uff21": "A", "\uff22": "B", "\uff23": "C",  # fullwidth
     "\u2013": "-", "\u2014": "-",  # en/em dash
     "\u200b": "",   # zero-width space
