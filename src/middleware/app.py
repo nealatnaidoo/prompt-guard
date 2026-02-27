@@ -1,10 +1,14 @@
 """FastAPI middleware service — the main entry point.
 
 Exposes:
-  POST /scan       — scan content and return analysis
-  POST /sanitise   — scan + sanitise content
-  GET  /health     — service health check
-  GET  /stats      — runtime statistics
+  POST /scan       — scan content and return analysis (no auth, backward compat)
+  POST /sanitise   — scan + sanitise content (no auth, backward compat)
+  GET  /health     — service health check (no auth)
+  GET  /stats      — runtime statistics (no auth, backward compat)
+
+  POST /v1/scan    — authenticated scan endpoint
+  POST /v1/sanitise — authenticated sanitise endpoint
+  GET  /v1/stats   — authenticated stats endpoint
 """
 
 from __future__ import annotations
@@ -15,8 +19,7 @@ from contextlib import asynccontextmanager
 from typing import Any
 
 import structlog
-from fastapi import FastAPI, HTTPException, Request
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi import APIRouter, Depends, FastAPI, HTTPException, Request
 from pydantic import BaseModel, Field
 
 from ..adapters.clock import SystemClockAdapter
@@ -40,6 +43,11 @@ from ..models.schemas import (
 from ..ports.audit import AuditPort
 from ..ports.clock import ClockPort
 from ..sanitizers.content_sanitizer import ContentSanitiser
+from .auth import require_api_key
+from .rate_limit import RateLimitMiddleware
+from .request_id import RequestIdMiddleware
+from .request_logging import RequestLoggingMiddleware
+from .security_headers import SecurityHeadersMiddleware
 
 logger = structlog.get_logger(__name__)
 
@@ -106,12 +114,21 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["POST", "GET"],
-    allow_headers=["*"],
-)
+# ── Middleware Stack ────────────────────────────────────────────────────────
+# Middleware is applied in REVERSE order of add_middleware calls.
+# We want (outermost first):
+#   1. Request logging (outermost)
+#   2. Security headers
+#   3. Request ID
+#   4. Rate limiting
+# Auth is applied per-route via Depends(), not as middleware.
+
+app.add_middleware(RateLimitMiddleware, requests_per_minute=120, burst_size=20)
+app.add_middleware(RequestIdMiddleware)
+app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(RequestLoggingMiddleware)
+
+# No wildcard CORS — this is an internal API service.
 
 
 # ── Request / Response models ───────────────────────────────────────────────
@@ -140,9 +157,8 @@ class StatsResponse(BaseModel):
     avg_latency_ms: float
 
 
-# ── Endpoints ───────────────────────────────────────────────────────────────
+# ── Endpoint handlers (shared between legacy and v1 routes) ────────────────
 
-@app.post("/scan", response_model=ScanResult)
 async def scan_content(request: ScanRequest, http_request: Request):
     """Scan content for injection, poisoning, and other threats."""
     try:
@@ -170,7 +186,6 @@ async def scan_content(request: ScanRequest, http_request: Request):
         raise HTTPException(status_code=500, detail="Internal scan error")
 
 
-@app.post("/sanitise", response_model=SanitiseResponse)
 async def sanitise_content(request: SanitiseRequest, http_request: Request):
     """Scan content and return sanitised version."""
     try:
@@ -222,7 +237,6 @@ async def sanitise_content(request: SanitiseRequest, http_request: Request):
         raise HTTPException(status_code=500, detail="Internal sanitise error")
 
 
-@app.get("/health", response_model=HealthResponse)
 async def health_check(http_request: Request):
     """Service health check."""
     state = http_request.app.state
@@ -233,7 +247,6 @@ async def health_check(http_request: Request):
     )
 
 
-@app.get("/stats", response_model=StatsResponse)
 async def get_stats(http_request: Request):
     """Runtime statistics."""
     state = http_request.app.state
@@ -256,3 +269,51 @@ async def get_stats(http_request: Request):
         },
         avg_latency_ms=total_latency / total if total > 0 else 0.0,
     )
+
+
+# ── Legacy routes (no auth, backward compatible) ──────────────────────────
+
+@app.post("/scan", response_model=ScanResult)
+async def legacy_scan(request: ScanRequest, http_request: Request):
+    return await scan_content(request, http_request)
+
+
+@app.post("/sanitise", response_model=SanitiseResponse)
+async def legacy_sanitise(request: SanitiseRequest, http_request: Request):
+    return await sanitise_content(request, http_request)
+
+
+@app.get("/health", response_model=HealthResponse)
+async def legacy_health(http_request: Request):
+    return await health_check(http_request)
+
+
+@app.get("/stats", response_model=StatsResponse)
+async def legacy_stats(http_request: Request):
+    return await get_stats(http_request)
+
+
+# ── Authenticated /v1/ routes ─────────────────────────────────────────────
+
+v1_router = APIRouter(
+    prefix="/v1",
+    dependencies=[Depends(require_api_key)],
+)
+
+
+@v1_router.post("/scan", response_model=ScanResult)
+async def v1_scan(request: ScanRequest, http_request: Request):
+    return await scan_content(request, http_request)
+
+
+@v1_router.post("/sanitise", response_model=SanitiseResponse)
+async def v1_sanitise(request: SanitiseRequest, http_request: Request):
+    return await sanitise_content(request, http_request)
+
+
+@v1_router.get("/stats", response_model=StatsResponse)
+async def v1_stats(http_request: Request):
+    return await get_stats(http_request)
+
+
+app.include_router(v1_router)

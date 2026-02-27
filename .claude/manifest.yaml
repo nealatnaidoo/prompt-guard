@@ -2,26 +2,30 @@ schema_version: '2.0'
 project_slug: prompt-guard
 project_name: Prompt Guard
 created: '2026-02-26T00:00:00Z'
-last_updated: '2026-02-27T00:00:00Z'
+last_updated: '2026-02-27T16:00:00Z'
 lifecycle_mode: lean
 phase: build
-phase_started: '2026-02-26T12:00:00Z'
+phase_started: '2026-02-27T14:00:00Z'
 enforcement_log: .claude/evolution/enforcement.log
 artifact_versions:
   user_journeys:
-    version: 1
-    file: .claude/artifacts/000_user_journeys_v1.md
+    version: 2
+    file: .claude/artifacts/000_user_journeys_v2.md
+    previous: .claude/artifacts/000_user_journeys_v1.md
   solution_envelope:
-    version: 1
-    file: .claude/artifacts/001_solution_envelope_v1.md
+    version: 2
+    file: .claude/artifacts/001_solution_envelope_v2.md
+    previous: .claude/artifacts/001_solution_envelope_v1.md
   spec:
-    version: 1
-    file: .claude/artifacts/002_spec_v1.md
-    created: '2026-02-26T12:00:00Z'
+    version: 2
+    file: .claude/artifacts/002_spec_v2.md
+    previous: .claude/artifacts/002_spec_v1.md
+    created: '2026-02-27T14:00:00Z'
   tasklist:
-    version: 1
-    file: .claude/artifacts/003_tasklist_v1.md
-    created: '2026-02-26T12:00:00Z'
+    version: 2
+    file: .claude/artifacts/003_tasklist_v2.md
+    previous: .claude/artifacts/003_tasklist_v1.md
+    created: '2026-02-27T14:00:00Z'
   rules:
     version: 1
     file: .claude/artifacts/004_rules_v1.yaml
@@ -37,6 +41,7 @@ exclusive_permissions:
   define_user_journeys: design
 outstanding:
   tasks:
+  # ── Retrofit tasks (all done) ──────────────────────────────────
   - id: T001
     title: Fix BUG-003 -- Remove Hardcoded Path in test_attack_vectors.py
     domain: backend
@@ -163,6 +168,104 @@ outstanding:
     - T013
     source_file: .claude/artifacts/003_tasklist_v1.md
     variant: retrofit
+  # ── Production deployment tasks (Epic 3: Middleware Stack) ─────
+  - id: T015
+    title: Create API Key Authentication Middleware
+    domain: backend
+    agent: back
+    status: done
+    blocked_by: []
+    source_file: .claude/artifacts/003_tasklist_v2.md
+    variant: production_deployment
+  - id: T016
+    title: Create Rate Limiting Middleware
+    domain: backend
+    agent: back
+    status: done
+    blocked_by: []
+    source_file: .claude/artifacts/003_tasklist_v2.md
+    variant: production_deployment
+  - id: T017
+    title: Create Request ID Middleware
+    domain: backend
+    agent: back
+    status: done
+    blocked_by: []
+    source_file: .claude/artifacts/003_tasklist_v2.md
+    variant: production_deployment
+  - id: T018
+    title: Create Security Headers Middleware
+    domain: backend
+    agent: back
+    status: done
+    blocked_by: []
+    source_file: .claude/artifacts/003_tasklist_v2.md
+    variant: production_deployment
+  - id: T019
+    title: Create Request Logging Middleware
+    domain: backend
+    agent: back
+    status: done
+    blocked_by: []
+    source_file: .claude/artifacts/003_tasklist_v2.md
+    variant: production_deployment
+  - id: T020
+    title: Register Middleware Stack and Add /v1/ Routes
+    domain: backend
+    agent: back
+    status: done
+    blocked_by:
+    - T015
+    - T016
+    - T017
+    - T018
+    - T019
+    source_file: .claude/artifacts/003_tasklist_v2.md
+    variant: production_deployment
+  # ── Production deployment tasks (Epic 4: SDK) ─────────────────
+  - id: T021
+    title: Add api_key Parameter to PromptGuardClient
+    domain: backend
+    agent: back
+    status: done
+    blocked_by:
+    - T020
+    source_file: .claude/artifacts/003_tasklist_v2.md
+    variant: production_deployment
+  # ── Production deployment tasks (Epic 5: Container & Deploy) ──
+  - id: T022
+    title: Harden Dockerfile and Create .dockerignore
+    domain: ops
+    agent: ops
+    status: done
+    blocked_by: []
+    source_file: .claude/artifacts/003_tasklist_v2.md
+    variant: production_deployment
+  - id: T023
+    title: Create fly.toml Configuration
+    domain: ops
+    agent: ops
+    status: done
+    blocked_by: []
+    source_file: .claude/artifacts/003_tasklist_v2.md
+    variant: production_deployment
+  - id: T024
+    title: Create GitHub Actions CI Workflow
+    domain: ops
+    agent: ops
+    status: done
+    blocked_by: []
+    source_file: .claude/artifacts/003_tasklist_v2.md
+    variant: production_deployment
+  - id: T025
+    title: Create GitHub Actions Deploy Workflow
+    domain: ops
+    agent: ops
+    status: done
+    blocked_by:
+    - T024
+    source_file: .claude/artifacts/003_tasklist_v2.md
+    variant: production_deployment
   remediation:
   - id: BUG-001
     source: verify_deep
@@ -213,8 +316,22 @@ domain_summary:
     - T012
     - T013
     - T014
+    - T015
+    - T016
+    - T017
+    - T018
+    - T019
+    - T020
+    - T021
     pattern: backend-hexagonal
     agent: back
+  ops:
+    tasks:
+    - T022
+    - T023
+    - T024
+    - T025
+    agent: ops
 reviews:
   last_verify_review:
     date: '2026-02-27'

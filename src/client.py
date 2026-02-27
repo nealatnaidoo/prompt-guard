@@ -66,9 +66,20 @@ class PromptGuardClient:
             result = await client.scan(content)
     """
 
-    def __init__(self, base_url: str = "http://localhost:8420", timeout: float = 30.0):
+    def __init__(
+        self,
+        base_url: str = "http://localhost:8420",
+        timeout: float = 30.0,
+        api_key: str | None = None,
+    ):
         self.base_url = base_url.rstrip("/")
-        self._client = httpx.AsyncClient(base_url=self.base_url, timeout=timeout)
+        self.api_key = api_key
+        headers: dict[str, str] = {}
+        if api_key:
+            headers["X-API-Key"] = api_key
+        self._client = httpx.AsyncClient(
+            base_url=self.base_url, timeout=timeout, headers=headers
+        )
 
     async def __aenter__(self):
         return self

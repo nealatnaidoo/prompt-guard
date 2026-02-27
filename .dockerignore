@@ -1,0 +1,47 @@
+# ---------------------------------------------------------------------------
+# Prompt Guard — Docker build exclusions
+# Task: T022 | Spec: FR-12.5
+# ---------------------------------------------------------------------------
+
+# Test files
+tests/
+
+# Version control
+.git/
+.gitignore
+
+# Claude agent artifacts
+.claude/
+.agent/
+
+# Documentation
+docs/
+*.md
+
+# Python bytecode
+*.pyc
+__pycache__/
+*.pyo
+
+# Environment files
+.env
+.env.*
+
+# IDE/editor
+.vscode/
+.idea/
+
+# CI/CD
+.github/
+
+# Coverage and test artifacts
+.coverage
+.pytest_cache/
+.mypy_cache/
+htmlcov/
+
+# Benchmarks
+.benchmarks/
+
+# Logs (runtime creates its own)
+logs/
