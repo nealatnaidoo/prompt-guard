@@ -1,0 +1,9 @@
+{
+  "labels": [
+    "benign",
+    "injection"
+  ],
+  "max_length": 512,
+  "model_type": "deberta-v3",
+  "base_model": "protectai/deberta-v3-base-prompt-injection-v2"
+}
