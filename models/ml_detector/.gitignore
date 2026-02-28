@@ -1,0 +1,8 @@
+# Exclude large model binaries from git
+# Use Git LFS or artifact storage for these
+*.onnx
+*.onnx.data
+*.bin
+*.safetensors
+pytorch/
+tokenizer_hf/

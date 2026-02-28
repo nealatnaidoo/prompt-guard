@@ -1,0 +1,46 @@
+{
+  "base_model": "protectai/deberta-v3-base-prompt-injection-v2",
+  "max_length": 256,
+  "datasets": {
+    "train": {
+      "samples": 1533
+    },
+    "validation": {
+      "samples": 192
+    },
+    "test": {
+      "samples": 192
+    }
+  },
+  "training_loss": 0.1591854190143446,
+  "test_metrics": {
+    "loss": 0.0134,
+    "accuracy": 0.9896,
+    "f1": 0.9863,
+    "precision": 0.973,
+    "recall": 1.0,
+    "runtime": 18.1868,
+    "samples_per_second": 10.557,
+    "steps_per_second": 0.66,
+    "epoch": 3.0
+  },
+  "classification_report": "              precision    recall  f1-score   support\n\n      benign       1.00      0.98      0.99       120\n   injection       0.97      1.00      0.99        72\n\n    accuracy                           0.99       192\n   macro avg       0.99      0.99      0.99       192\nweighted avg       0.99      0.99      0.99       192\n",
+  "confusion_matrix": [
+    [
+      118,
+      2
+    ],
+    [
+      0,
+      72
+    ]
+  ],
+  "hyperparameters": {
+    "learning_rate": 2e-05,
+    "epochs": 3,
+    "batch_size": 16,
+    "warmup_ratio": 0.1,
+    "weight_decay": 0.01,
+    "seed": 42
+  }
+}

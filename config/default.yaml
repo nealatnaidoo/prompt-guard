@@ -18,11 +18,12 @@ detection:
 
 # Individual detector weights (must sum to ~1.0)
 detector_weights:
-  pattern:    0.30   # Regex pattern matching
-  heuristic:  0.25   # Structural / statistical heuristics
-  semantic:   0.25   # Semantic analysis (instruction detection)
-  entropy:    0.10   # Entropy & encoding anomalies
-  provenance: 0.10   # Source reputation & history
+  pattern:    0.25   # Regex pattern matching
+  heuristic:  0.20   # Structural / statistical heuristics
+  semantic:   0.20   # Semantic analysis (instruction detection)
+  entropy:    0.08   # Entropy & encoding anomalies
+  provenance: 0.07   # Source reputation & history
+  ml:         0.20   # ML model (DeBERTa-v3 fine-tuned)
 
 # Pattern detector config
 pattern_detector:
@@ -61,6 +62,15 @@ entropy_detector:
   base64_min_length: 40
   # Hex-encoded content detection
   hex_min_length: 32
+
+# ML detector config
+ml_detector:
+  enabled: true
+  model_path: "models/ml_detector/model.onnx"
+  tokenizer_path: "models/ml_detector/tokenizer.json"
+  max_length: 512
+  score_threshold: 0.5
+  high_confidence_threshold: 0.85
 
 # Sanitiser settings
 sanitiser:

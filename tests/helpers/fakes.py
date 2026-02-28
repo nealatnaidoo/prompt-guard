@@ -11,6 +11,7 @@ from typing import Any
 from src.detectors.base import DetectorRegistry
 from src.detectors.entropy_detector import EntropyDetector
 from src.detectors.heuristic_detector import HeuristicDetector
+from src.detectors.ml_detector import MLDetector
 from src.detectors.pattern_detector import PatternDetector
 from src.detectors.provenance_detector import ProvenanceDetector
 from src.detectors.semantic_detector import SemanticDetector
@@ -18,13 +19,22 @@ from src.models.schemas import ScanResult
 from src.ports.audit import AuditPort
 from src.ports.clock import ClockPort
 from src.ports.config import ConfigPort
+from src.ports.inference import InferencePort, InferenceResult
 
 
-def build_default_registry(config: dict[str, Any] | None = None) -> DetectorRegistry:
-    """Build a DetectorRegistry with all five default detectors.
+def build_default_registry(
+    config: dict[str, Any] | None = None,
+    *,
+    include_ml: bool = False,
+) -> DetectorRegistry:
+    """Build a DetectorRegistry with the default detectors.
 
     This mirrors the registration logic from the composition root (app.py lifespan).
     Use this in tests that need a fully-wired engine without going through FastAPI.
+
+    When *include_ml* is True the ML detector is registered with a
+    ``FakeInferenceAdapter`` so that tests exercise the ML path without
+    loading a real model.
     """
     cfg = config or {}
     registry = DetectorRegistry()
@@ -33,6 +43,13 @@ def build_default_registry(config: dict[str, Any] | None = None) -> DetectorRegi
     registry.register(SemanticDetector(cfg.get("semantic_detector", {})))
     registry.register(EntropyDetector(cfg.get("entropy_detector", {})))
     registry.register(ProvenanceDetector(cfg.get("provenance_detector", {})))
+    if include_ml:
+        registry.register(
+            MLDetector(
+                cfg.get("ml_detector", {}),
+                inference=FakeInferenceAdapter(),
+            )
+        )
     return registry
 
 
@@ -79,3 +96,28 @@ class NullAuditAdapter(AuditPort):
         extra: dict[str, Any] | None = None,
     ) -> None:
         self.calls.append((result, source_ip, extra))
+
+
+class FakeInferenceAdapter(InferencePort):
+    """Returns a fixed prediction for deterministic testing.
+
+    By default returns ``injection`` with score 0.95.  Set *available* to
+    ``False`` to simulate a missing or failed model load.
+    """
+
+    def __init__(
+        self,
+        label: str = "injection",
+        score: float = 0.95,
+        *,
+        available: bool = True,
+    ) -> None:
+        self._label = label
+        self._score = score
+        self._available = available
+
+    def predict(self, text: str) -> InferenceResult:
+        return InferenceResult(label=self._label, score=self._score)
+
+    def is_available(self) -> bool:
+        return self._available

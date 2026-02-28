@@ -62,6 +62,11 @@ def main() -> int:
         help="Minimum threat_level to count as positive (default: medium)",
     )
     parser.add_argument(
+        "--ml",
+        action="store_true",
+        help="Enable ML detector (requires ONNX model at models/ml_detector/)",
+    )
+    parser.add_argument(
         "--list",
         action="store_true",
         help="List available datasets and exit",
@@ -85,12 +90,17 @@ def main() -> int:
     mode = "remote" if args.endpoint else "in-process"
     print(f"\nPrompt Guard Benchmark Harness")
     print(f"  Mode:      {mode}")
+    print(f"  ML model:  {'enabled' if args.ml else 'disabled'}")
     print(f"  Threshold: {args.threshold}")
     print(f"  Datasets:  {', '.join(dataset_names)}")
     if args.limit:
         print(f"  Limit:     {args.limit} samples/dataset")
 
-    runner = BenchmarkRunner(endpoint=args.endpoint, threshold=args.threshold)
+    runner = BenchmarkRunner(
+        endpoint=args.endpoint,
+        threshold=args.threshold,
+        include_ml=args.ml,
+    )
 
     all_reports = {}
     total_start = time.monotonic()
