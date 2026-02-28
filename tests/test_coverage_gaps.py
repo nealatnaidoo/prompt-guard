@@ -456,7 +456,7 @@ class TestAppLifespan:
             assert resp.status_code == 200
             data = resp.json()
             assert data["status"] == "ok"
-            assert data["detectors_loaded"] == 5  # all 5 detectors
+            assert data["detectors_loaded"] >= 5  # 5 rule-based + optional ML detector
 
 
 class TestAppScanError:

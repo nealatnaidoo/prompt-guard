@@ -28,9 +28,11 @@ class BenchmarkRunner:
         self,
         endpoint: str | None = None,
         threshold: str = "medium",
+        include_ml: bool = False,
     ):
         self._threshold = threshold
         self._endpoint = endpoint
+        self._include_ml = include_ml
         self._client = None
         self._test_client = None
 
@@ -59,6 +61,25 @@ class BenchmarkRunner:
         clock = SystemClockAdapter()
         audit = NullAuditAdapter()
         registry = build_default_registry()
+
+        if self._include_ml:
+            from src.adapters.onnx_inference import OnnxInferenceAdapter
+            from src.detectors.ml_detector import MLDetector
+
+            inference_adapter = OnnxInferenceAdapter(
+                model_path="models/ml_detector/model.onnx",
+                tokenizer_path="models/ml_detector/tokenizer.json",
+                max_length=512,
+            )
+            if inference_adapter.is_available():
+                registry.register(MLDetector(
+                    {"score_threshold": 0.5, "high_confidence_threshold": 0.85},
+                    inference=inference_adapter,
+                ))
+                print("  ML detector: ENABLED (real ONNX model)")
+            else:
+                print("  ML detector: UNAVAILABLE (model files not found)")
+
         engine = DetectionEngine(clock=clock, registry=registry)
         sanitiser = ContentSanitiser()
 

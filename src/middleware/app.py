@@ -30,7 +30,9 @@ from ..detectors.pattern_detector import PatternDetector
 from ..detectors.heuristic_detector import HeuristicDetector
 from ..detectors.semantic_detector import SemanticDetector
 from ..detectors.entropy_detector import EntropyDetector
+from ..detectors.ml_detector import MLDetector
 from ..detectors.provenance_detector import ProvenanceDetector
+from ..adapters.onnx_inference import OnnxInferenceAdapter
 from ..models.schemas import (
     ContentSource,
     HealthResponse,
@@ -74,6 +76,16 @@ async def lifespan(app: FastAPI):
     registry.register(SemanticDetector(detection_config.get("semantic_detector", {})))
     registry.register(EntropyDetector(detection_config.get("entropy_detector", {})))
     registry.register(ProvenanceDetector(detection_config.get("provenance_detector", {})))
+
+    # 4b. Conditionally register ML detector
+    ml_config = config.get("ml_detector", {})
+    if ml_config.get("enabled", False):
+        inference_adapter = OnnxInferenceAdapter(
+            model_path=ml_config.get("model_path", "models/ml_detector/model.onnx"),
+            tokenizer_path=ml_config.get("tokenizer_path", "models/ml_detector/tokenizer.json"),
+            max_length=ml_config.get("max_length", 512),
+        )
+        registry.register(MLDetector(ml_config, inference=inference_adapter))
 
     # 5. Create DetectionEngine with injected dependencies
     engine = DetectionEngine(
