@@ -1,4 +1,4 @@
-# Prompt Guard — Deployment Guide
+# Prompt Guard - Deployment Guide
 
 ## Prerequisites
 

@@ -20,6 +20,11 @@ logs/
 .idea/
 .vscode/
 .agent/
+.claude/
+CLAUDE.md
 .coverage
 .benchmarks/
 coverage.json
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/

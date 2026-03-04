@@ -1,4 +1,4 @@
-# Prompt Guard — Integration Guide
+# Prompt Guard - Integration Guide
 
 ## Service Overview
 
@@ -41,7 +41,7 @@ Scan content for prompt injection, jailbreak attempts, data exfiltration, and ot
 
 | Field | Type | Required | Default | Description |
 |-------|------|----------|---------|-------------|
-| `content` | string | Yes | — | Text to scan (max 500,000 chars) |
+| `content` | string | Yes | -| Text to scan (max 500,000 chars) |
 | `source` | string | No | `"unknown"` | Content origin: `user_input`, `web_scrape`, `api_response`, `file_upload`, `unknown` |
 | `metadata` | object | No | `{}` | Arbitrary key-value pairs for audit logging |
 | `detectors` | string[] | No | `null` | Limit to specific detectors (e.g. `["pattern", "heuristic"]`). Null = all |
@@ -106,7 +106,7 @@ Scan content and return a sanitised version. Automatically escalates sanitisatio
 
 | Field | Type | Required | Default | Description |
 |-------|------|----------|---------|-------------|
-| `content` | string | Yes | — | Text to sanitise |
+| `content` | string | Yes | -| Text to sanitise |
 | `source` | string | No | `"unknown"` | Content origin |
 | `sanitise_level` | string | No | `"standard"` | `minimal`, `standard`, or `strict` |
 
@@ -406,7 +406,7 @@ The service runs 5 detectors in parallel on every scan:
 | **Entropy** (0.10) | Information-theoretic | High-entropy segments, base64/hex blobs, obfuscated payloads |
 | **Provenance** (0.10) | Source-based | Inconsistent source signals, embedded instructions in API/web content |
 
-Scores are aggregated via weighted average with a **dominant detector floor** — if any single detector scores ≥0.70, the final score is at least `max_score × 0.65`, preventing strong signals from being diluted.
+Scores are aggregated via weighted average with a **dominant detector floor** -if any single detector scores ≥0.70, the final score is at least `max_score × 0.65`, preventing strong signals from being diluted.
 
 ---
 
